@@ -1,0 +1,67 @@
+version: '3'
+services:
+  db:
+    container_name: mysql
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: prestashop
+    networks:
+      - prestashop_network
+    volumes:
+      - ./dbdata:/var/lib/mysql
+  prestashop:
+    container_name: prestashop
+    image: kanlayani/ks_ps:v2
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - 8080:80
+    environment:
+      DISABLE_MAKE: ${DISABLE_MAKE:-0}
+      PS_INSTALL_AUTO: ${PS_INSTALL_AUTO:-1}
+      DB_PASSWD: ${DB_PASSWD:-admin}
+      DB_NAME: ${DB_NAME:-prestashop}
+      DB_USER: ${DB_USER:-root}
+      DB_SERVER: ${DB_SERVER:-mysql}
+      DB_PREFIX: ${DB_PREFIX:-ps_}
+      PS_DOMAIN: ${PS_DOMAIN:-localhost:8080}
+      PS_FOLDER_INSTALL: ${PS_FOLDER_INSTALL:-install-dev}
+      PS_FOLDER_ADMIN: ${PS_FOLDER_ADMIN:-admin-dev}
+      PS_COUNTRY: ${PS_COUNTRY:-th}
+      PS_LANGUAGE: ${PS_LANGUAGE:-en}
+      PS_DEV_MODE: ${PS_DEV_MODE:-1}
+      PS_ENABLE_SSL: ${PS_ENABLE_SSL:-0}
+      PS_ERASE_DB: ${PS_ERASE_DB:-0}
+      ADMIN_MAIL: ${ADMIN_MAIL:-demo@prestashop.com}
+      ADMIN_PASSWD: ${ADMIN_PASSWD:-admin12345678}
+    networks:
+      - prestashop_network
+    #volumes:
+      #- ./Project:/var/www/html
+      #- ./Project/classes:/var/www/html/classes
+      #- ./Project/img:/var/www/html/img
+      #- ./Project/themes:/var/www/html/thems
+      #- ./Project/modules:/var/www/html/modules
+
+      
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: unless-stopped
+    ports:
+      - 8081:80
+    networks:
+      - prestashop_network
+networks:
+  prestashop_network:
+volumes:
+  dbdata:
